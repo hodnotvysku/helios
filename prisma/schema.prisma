@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,9 +7,88 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Test {
-  id    Int     @id @default(autoincrement())
-  name  String
-  email String
-  age   Int
+model faculties {
+  id             Int          @id @default(autoincrement())
+  translationKey String       @unique @db.VarChar
+  schoolId       Int
+  location       location
+  image          String?      @db.VarChar(255)
+  address        String       @db.VarChar(255)
+  description    String?      @db.VarChar(255)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  schools        schools      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  programmes     programmes[]
+  reviews        reviews[]
+}
+
+model programmes {
+  id                 Int                  @id @default(autoincrement())
+  translationKey     String               @unique @db.VarChar
+  facultyId          Int
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  faculties          faculties            @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  programmes_studies programmes_studies[]
+}
+
+model programmes_studies {
+  id         Int        @id @default(autoincrement())
+  programId  Int
+  studyId    Int
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  programmes programmes @relation(fields: [programId], references: [id], onDelete: Cascade)
+  studies    studies    @relation(fields: [studyId], references: [id], onDelete: Cascade)
+}
+
+model reports {
+  id         Int       @id @default(autoincrement())
+  reviewId   Int?
+  reviewedAt DateTime? @db.Timestamp(6)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  reviews    reviews?  @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+}
+
+model reviews {
+  id          Int       @id @default(autoincrement())
+  authorEmail String    @db.VarChar
+  review      String
+  facultyId   Int
+  recommends  Boolean
+  verified    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+  updatedAt   DateTime  @updatedAt
+  reports     reports[]
+  faculties   faculties @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+}
+
+model schools {
+  id             Int         @id @default(autoincrement())
+  translationKey String      @unique @db.VarChar
+  description    String?     @db.VarChar(255)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  faculties      faculties[]
+}
+
+model studies {
+  id                 Int                  @id @default(autoincrement())
+  translationKey     String               @unique @db.VarChar
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  programmes_studies programmes_studies[]
+}
+
+enum location {
+  BRATISLAVSKY_KRAJ
+  TRNAVSKY_KRAJ
+  TRENCIANSKY_KRAJ
+  NITRIANSKY_KRAJ
+  ZILINSKY_KRAJ
+  BANSKOBYSTRICKY_KRAJ
+  PRESOVSKY_KRAJ
+  KOSICKY_KRAJ
 }
